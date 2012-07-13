@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
+require File.expand_path('../lib/netdnarws/version', __FILE__)
 
 require 'rubygems'
 require 'bundler'
