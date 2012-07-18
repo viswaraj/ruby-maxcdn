@@ -17,7 +17,7 @@ It has support for GET, POST, PUT and DELETE ouath signed requests.
 
 Every request can take an optional debug parameter.
 ```ruby
-api.get("/account.json", :debug => True)
+api.get("/account.json", :debug => true)
 # Will output
 # Making GET request to http://rws.netdna.com/myalias/account.json
 #{... API Returned Stuff ...}
