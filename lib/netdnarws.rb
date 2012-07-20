@@ -30,7 +30,8 @@ module NetDNARWS
         response = @client.request method, _get_url(uri), nil, options, attributes
         begin
           response_json = JSON.parse(response.body)
-          if response.code != "200"
+          if not ((100..399).map { |e| e.to_s }).include? response.code
+            puts response.code
             error_message = response_json['error']['message']
             raise Exception.new("#{response.code}: #{error_message}")
           end
