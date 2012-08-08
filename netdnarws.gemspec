@@ -12,5 +12,6 @@ Gem::Specification.new do |gem|
   gem.description = %Q{A Rest Client For NetDNA Rest Web Services}
   gem.email = "devteam@netdna.com"
   gem.authors = ["NetDNA Developer Team"]
-  gem.add_dependency 'oauth'
+  gem.add_dependency 'addressable'
+  gem.add_dependency 'signet'
 end
