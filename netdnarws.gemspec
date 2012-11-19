@@ -14,4 +14,5 @@ Gem::Specification.new do |gem|
   gem.authors = ["NetDNA Developer Team"]
   gem.add_dependency 'addressable'
   gem.add_dependency 'signet'
+  gem.add_dependency 'curb-fu'
 end

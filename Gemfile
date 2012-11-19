@@ -1,5 +1,5 @@
 source "http://rubygems.org"
 
 gem "addressable"
-gem "signet"
+gem "curb-fu"
 gemspec

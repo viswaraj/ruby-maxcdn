@@ -1,15 +1,7 @@
 require 'signet/oauth_1/client'
 require 'addressable/uri'
-require 'faraday/connection'
+require 'curb-fu'
 require 'json'
-
-module Faraday
-  class Request
-    def url path, params=nil
-      self.path = path
-    end
-  end
-end
 
 module NetDNARWS
   class NetDNA
@@ -58,33 +50,35 @@ module NetDNARWS
 
         request_options[:body] = _encode_params(attributes[0]) if options[:body]
         request = @request_signer.generate_authenticated_request(request_options)
-        connection = Faraday::Connection.new
 
         begin
-          response = connection.send method do |req|
-            req.url _get_url(uri, attributes)
-            req.headers = request.headers
-            req.body = request.body if options[:body]
-          end
+          response = CurbFu.send method,
+            url: _get_url(uri, attributes),
+            headers: request.headers,
+            data: (request.body if options[:body])
 
-          response_json = JSON.load(response.env[:body])
+          return response if options[:debug_request]
 
-          if not (100..399).include? response.env[:status]
+          response_json = JSON.load(response.body)
+
+          return response_json if options[:debug_json]
+
+          if not (response.success? or response.redirect?)
             error_message = response_json['error']['message']
-            raise Exception.new("#{response.env[:status]}: #{error_message}")
+            raise Exception.new("#{response.status}: #{error_message}")
           end
         rescue TypeError
           raise Exception.new(
-            "#{response.env[:status]}: No information supplied by the server"
+            "#{response.status}: No information supplied by the server"
           )
         end
 
         response_json
       end
 
-      def get uri, options={}
+      def get uri, data={}, options={}
         options[:body] = false
-        self._response_as_json 'get', uri, options
+        self._response_as_json 'get', uri, options, data
       end
 
       def post uri, data={}, options={}
@@ -97,9 +91,9 @@ module NetDNARWS
         self._response_as_json 'put', uri, options, data
       end
 
-      def delete uri, options={}
+      def delete uri, data={}, options={}
         options[:body] = false
-        self._response_as_json 'delete', uri, options
+        self._response_as_json 'delete', uri, options, data
       end
   end
 end
