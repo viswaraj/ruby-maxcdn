@@ -52,10 +52,15 @@ module NetDNARWS
         request = @request_signer.generate_authenticated_request(request_options)
 
         begin
-          response = CurbFu.send method,
-            url: _get_url(uri, attributes),
-            headers: request.headers,
-            data: (request.body if options[:body])
+          curb_options = {}
+          curb_options[:url] = _get_url(uri, attributes)
+          curb_options[:headers] = request.headers
+
+          if not options[:body]
+            response = CurbFu.send method, curb_options
+          else
+            response = CurbFu.send method, curb_options, request.body
+          end
 
           return response if options[:debug_request]
 
