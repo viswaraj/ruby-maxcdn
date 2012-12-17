@@ -16,12 +16,6 @@ api.get("/account.json")
 It has support for `GET`, `POST`, `PUT` and `DELETE` OAuth 1.0a signed requests.
 
 ```ruby
-<<<<<<< HEAD
-api.get("/account.json", :debug => true)
-# Will output
-# Making GET request to https://rws.netdna.com/myalias/account.json
-#{... API Returned Stuff ...}
-=======
 # To create a new Pull Zone
 api.post("/zones/pull.json", {'name' => 'test_zone', 'url' => 'http://my-test-site.com'})
 
@@ -30,5 +24,4 @@ api.put("/zones/pull.json/1234", {'name' => 'i_didnt_like_test'})
 
 # To delete a zone
 api.delete("/zones/pull.json/1234")
->>>>>>> curb-signet
 ```
