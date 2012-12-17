@@ -1,4 +1,5 @@
 source "http://rubygems.org"
 
-gem "oauth"
+gem "addressable"
+gem "curb-fu"
 gemspec
