@@ -28,3 +28,17 @@ api.delete("/zones/pull.json/1234")
 # To purge a file (robots.txt) from cache
 api.delete("/zones/pull.json/1234/cache", {"file" => "/robots.txt"})
 ```
+
+### We now have a shortcut for Purge Calls!
+```ruby
+zone_id = 12345
+
+# Purge Zone
+api.purge(zone_id)
+
+# Purge File
+api.purge(zone_id, '/some_file')
+
+# Purge Files
+api.purge(zone_id, ['/some_file', '/another_file'])
+```
