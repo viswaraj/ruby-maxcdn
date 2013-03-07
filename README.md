@@ -24,4 +24,7 @@ api.put("/zones/pull.json/1234", {'name' => 'i_didnt_like_test'})
 
 # To delete a zone
 api.delete("/zones/pull.json/1234")
+
+# To purge a file (robots.txt) from cache
+api.delete("/zones/pull.json/1234/cache", {"file" => "/robots.txt"})
 ```
