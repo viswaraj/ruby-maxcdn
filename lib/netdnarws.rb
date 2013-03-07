@@ -100,5 +100,30 @@ module NetDNARWS
         options[:body] = false
         self._response_as_json 'delete', uri, options, data
       end
+
+      def purge zone_id, file_or_files=nil
+        if file_or_files.respond_to? :each
+          responses = Hash.new
+
+          file_or_files.each { |e|
+            responses[e] = self.delete(
+                             "/zones/pull.json/#{zone_id}/cache",
+                             {'file' => e},
+                             :debug_json => true
+                           )
+          }
+          return responses
+        end
+
+
+        unless file_or_files.nil?
+          return self.delete(
+            "/zones/pull.json/#{zone_id}/cache",
+            {'file' => file_or_files}
+          )
+        end
+
+        self.delete("/zones/pull.json/#{zone_id}/cache")
+      end
   end
 end
