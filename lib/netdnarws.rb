@@ -50,10 +50,12 @@ module NetDNARWS
 
         request_options[:body] = _encode_params(attributes[0]) if options[:body]
         request = @request_signer.generate_authenticated_request(request_options)
+        request.headers["User-Agent"] = "Ruby NetDNA API Client"
 
         begin
           curb_options = {}
           curb_options[:url] = _get_url(uri, attributes)
+          require 'pry'; binding.pry
           curb_options[:headers] = request.headers
 
           if not options[:body]
