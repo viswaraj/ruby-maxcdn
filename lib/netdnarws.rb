@@ -55,7 +55,6 @@ module NetDNARWS
         begin
           curb_options = {}
           curb_options[:url] = _get_url(uri, attributes)
-          require 'pry'; binding.pry
           curb_options[:headers] = request.headers
 
           if not options[:body]
