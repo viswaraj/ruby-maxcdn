@@ -17,6 +17,9 @@ module NetDNARWS
     end
   end
 
+  class APIException < Exception
+  end
+
   class NetDNA
     include NetDNARWS::Utils
 
@@ -86,10 +89,10 @@ module NetDNARWS
 
         if not (response.success? or response.redirect?)
           error_message = response_json['error']['message']
-          raise Exception.new("#{response.status}: #{error_message}")
+          raise NetDNARWS::APIException.new("#{response.status}: #{error_message}")
         end
       rescue TypeError
-        raise Exception.new(
+        raise NetDNARWS::APIException.new(
           "#{response.status}: No information supplied by the server"
         )
       end
