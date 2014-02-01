@@ -99,24 +99,11 @@ module MaxCDN
       response_json
     end
 
-    def get uri, data={}, options={}
-      options[:body] = false
-      self._response_as_json "get", uri, options, data
-    end
-
-    def post uri, data={}, options={}
-      options[:body] = true
-      self._response_as_json "post", uri, options, data
-    end
-
-    def put uri, data={}, options={}
-      options[:body] = true
-      self._response_as_json "put", uri, options, data
-    end
-
-    def delete uri, data={}, options={}
-      options[:body] = false
-      self._response_as_json "delete", uri, options, data
+    [ :get, :post, :put, :delete ].each do |meth|
+      define_method(meth) do |uri, data={}, options={}|
+        options[:body] = false
+        self._response_as_json meth.to_s, uri, options, data
+      end
     end
 
     def purge zone_id, file_or_files=nil, options={}

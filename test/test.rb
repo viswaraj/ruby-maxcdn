@@ -66,7 +66,7 @@ class Client < Minitest::Test
   def test_get
     response = new_response
     CurbFu::Request.stub :get, response do
-      assert_equal({ "foo" => "bar" }, @max.get("/foo"))
+      assert_equal({ "foo" => "bar" }, @max.get("/account.json"))
     end
     assert response.verify
   end
@@ -74,7 +74,15 @@ class Client < Minitest::Test
   def test_post
     response = new_response
     CurbFu::Request.stub :post, response do
-      assert_equal({ "foo" => "bar" }, @max.post("/foo"))
+      assert_equal({ "foo" => "bar" }, @max.post("/zones/pull.json", {'name' => 'test_zone', 'url' => 'http://my-test-site.com'}))
+    end
+    assert response.verify
+  end
+
+  def test_put
+    response = new_response
+    CurbFu::Request.stub :put, response do
+      assert_equal({ "foo" => "bar" }, @max.put("/zones/pull.json/1234", {'name' => 'i_didnt_like_test'}))
     end
     assert response.verify
   end
@@ -82,15 +90,39 @@ class Client < Minitest::Test
   def test_delete
     response = new_response
     CurbFu::Request.stub :delete, response do
-      assert_equal({ "foo" => "bar" }, @max.delete("/foo"))
+      assert_equal({ "foo" => "bar" }, @max.delete("/zones/pull.json/1234"))
     end
     assert response.verify
   end
 
-  def test_delete
+  def test_delete_file
+    response = new_response
+    CurbFu::Request.stub :delete, response do
+      assert_equal({ "foo" => "bar" }, @max.delete("/zones/pull.json/1234/cache", {"file" => "/robots.txt"}))
+    end
+    assert response.verify
+  end
+
+  def test_purge
     response = new_response
     CurbFu::Request.stub :delete, response do
       assert_equal({ "foo" => "bar" }, @max.purge(12345))
+    end
+    assert response.verify
+  end
+
+  def test_purge_file
+    response = new_response
+    CurbFu::Request.stub :delete, response do
+      assert_equal({ "foo" => "bar" }, @max.purge(12345, "/foo.txt"))
+    end
+    assert response.verify
+  end
+
+  def test_purge_files
+    response = new_response
+    CurbFu::Request.stub :delete, response do
+      assert_equal({ "foo" => "bar" }, @max.purge(12345, [ "/foo.txt", "/bar.txt" ]))
     end
     assert response.verify
   end
