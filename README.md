@@ -19,9 +19,9 @@ bundle install --path vendor/bundle
 
 ## Usage
 ```ruby
-require 'netdnarws'
+require 'maxcdn'
 
-api = NetDNA::Client.new("myalias", "consumer_key", "consumer_secret")
+api = MaxCDN::Client.new("myalias", "consumer_key", "consumer_secret")
 
 api.get("/account.json")
 ```
