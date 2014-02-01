@@ -1,16 +1,27 @@
 # We're Hiring!
 Do you like building cool stuff?  Do APIs keep you up at night? We're looking for our next superstar hacker and you could be it. Interested? Check out our job posting on [stackoverflow](http://careers.stackoverflow.com/jobs/37078/senior-web-engineer-for-fun-growing-la-startup-maxcdn&a=JdFbT4OY).
 
-# NetDNA REST Web Services Ruby Client
+# MaxCDN REST Web Services Ruby Client
 
 ## Installation
-`gem install netdnarws`
+
+``` bash
+gem install maxcdn # coming soon
+```
+
+#### With Bundler
+
+```
+bundle init
+echo "gem 'maxcdn', :git => 'https://github.com/jmervine/ruby-maxcdn.git'" >> Gemfile
+bundle install --path vendor/bundle
+```
 
 ## Usage
 ```ruby
 require 'netdnarws'
 
-api = NetDNARWS::NetDNA.new("myalias", "consumer_key", "consumer_secret")
+api = NetDNA::Client.new("myalias", "consumer_key", "consumer_secret")
 
 api.get("/account.json")
 ```
@@ -45,3 +56,4 @@ api.purge(zone_id, '/some_file')
 # Purge Files
 api.purge(zone_id, ['/some_file', '/another_file'])
 ```
+

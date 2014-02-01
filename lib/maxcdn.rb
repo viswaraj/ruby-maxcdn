@@ -1,15 +1,15 @@
-require 'signet/oauth_1/client'
-require 'curb-fu'
-require 'json'
+require "signet/oauth_1/client"
+require "curb-fu"
+require "json"
 
-module NetDNARWS
+module MaxCDN
   module Utils
     RESERVED_CHARACTERS = /[^a-zA-Z0-9\-\.\_\~]/
 
     def escape(value)
-      URI::escape(value.to_s, NetDNARWS::Utils::RESERVED_CHARACTERS)
+      URI::escape(value.to_s, MaxCDN::Utils::RESERVED_CHARACTERS)
     rescue ArgumentError
-      URI::escape(value.to_s.force_encoding(Encoding::UTF_8), NetDNARWS::Utils::RESERVED_CHARACTERS)
+      URI::escape(value.to_s.force_encoding(Encoding::UTF_8), MaxCDN::Utils::RESERVED_CHARACTERS)
     end
 
     def encode_params params={}
@@ -20,12 +20,11 @@ module NetDNARWS
   class APIException < Exception
   end
 
-  class NetDNA
-    include NetDNARWS::Utils
+  class Client
+    include MaxCDN::Utils
 
     attr_accessor :client
-    def initialize company_alias, key, secret,
-      server='rws.netdna.com', secure_connection=true, *options
+    def initialize(company_alias, key, secret, server="rws.maxcdn.com", secure_connection=true)
       @company_alias = company_alias
       @server = server
       @secure_connection = secure_connection
@@ -68,7 +67,7 @@ module NetDNARWS
 
       request_options[:body] = _encode_params(attributes[0]) if options[:body]
       request = @request_signer.generate_authenticated_request(request_options)
-      request.headers["User-Agent"] = "Ruby NetDNA API Client"
+      request.headers["User-Agent"] = "Ruby MaxCDN API Client"
 
       begin
         curb_options = {}
@@ -88,11 +87,11 @@ module NetDNARWS
         return response_json if options[:debug_json]
 
         if not (response.success? or response.redirect?)
-          error_message = response_json['error']['message']
-          raise NetDNARWS::APIException.new("#{response.status}: #{error_message}")
+          error_message = response_json["error"]["message"]
+          raise MaxCDN::APIException.new("#{response.status}: #{error_message}")
         end
       rescue TypeError
-        raise NetDNARWS::APIException.new(
+        raise MaxCDN::APIException.new(
           "#{response.status}: No information supplied by the server"
         )
       end
@@ -102,29 +101,29 @@ module NetDNARWS
 
     def get uri, data={}, options={}
       options[:body] = false
-      self._response_as_json 'get', uri, options, data
+      self._response_as_json "get", uri, options, data
     end
 
     def post uri, data={}, options={}
       options[:body] = true
-      self._response_as_json 'post', uri, options, data
+      self._response_as_json "post", uri, options, data
     end
 
     def put uri, data={}, options={}
       options[:body] = true
-      self._response_as_json 'put', uri, options, data
+      self._response_as_json "put", uri, options, data
     end
 
     def delete uri, data={}, options={}
       options[:body] = false
-      self._response_as_json 'delete', uri, options, data
+      self._response_as_json "delete", uri, options, data
     end
 
     def purge zone_id, file_or_files=nil, options={}
       unless file_or_files.nil?
         return self.delete(
           "/zones/pull.json/#{zone_id}/cache",
-          {'file' => file_or_files},
+          {"file" => file_or_files},
             options
         )
       end
