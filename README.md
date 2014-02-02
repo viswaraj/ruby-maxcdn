@@ -57,3 +57,24 @@ api.purge(zone_id, '/some_file')
 api.purge(zone_id, ['/some_file', '/another_file'])
 ```
 
+
+## Development Quick Start
+
+``` bash
+# get it
+git clone git@github.com:<fork repo>/ruby-maxcdn.git
+
+# setup
+cd ruby-maxcdn
+bundle install --path vendor/bundle
+
+# unit tests
+bundle exec ruby ./test/test.rb
+
+# integration tests
+export ALIAS=<your alias>
+export KEY=<your key>
+export SECRET=<your secret>
+bundle exec ruby ./test/integration.rb # requires host's IP be whitelisted
+```
+
