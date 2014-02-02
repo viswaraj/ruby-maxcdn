@@ -102,7 +102,7 @@ module MaxCDN
 
     [ :get, :post, :put, :delete ].each do |meth|
       define_method(meth) do |uri, data={}, options={}|
-        options[:body] = false
+        options[:body] = (meth == :post || meth == :put)
         self._response_as_json meth.to_s, uri, options, data
       end
     end
