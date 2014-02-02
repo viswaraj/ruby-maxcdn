@@ -47,7 +47,8 @@ module MaxCDN
     end
 
     def _get_url uri, params={}
-      url = "#{_connection_type}://#{@server}/#{@company_alias}#{uri}"
+
+      url = "#{_connection_type}://#{@server}/#{@company_alias}/#{uri.gsub(/^\//, "")}"
       if not params.empty?
         url += "?#{_encode_params(params)}"
       end
