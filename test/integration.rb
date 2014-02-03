@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require "json"
 require "minitest/autorun"
 require "minitest/reporters"
