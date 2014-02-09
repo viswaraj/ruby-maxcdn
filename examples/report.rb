@@ -40,7 +40,7 @@ maxcdn.get("/zones/pull.json")["data"]["pullzones"].each do |zone|
   puts " "
   puts "Popular Files:"
   maxcdn.get("/reports/#{zone["id"]}/popularfiles.json?page_size=10")["data"]["popularfiles"].each do |file|
-    puts " - url: #{file["url"]}"
+    puts " - url: #{file["uri"]}"
     puts "   - hits: #{file["hit"]}"
     puts "   - size: #{file["size"]}"
   end
