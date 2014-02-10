@@ -1,19 +1,22 @@
-# We're Hiring!
+# MaxCDN is Hiring!
+
 Do you like building cool stuff?  Do APIs keep you up at night? We're looking for our next superstar hacker and you could be it. Interested? Check out our job posting on [stackoverflow](http://careers.stackoverflow.com/jobs/37078/senior-web-engineer-for-fun-growing-la-startup-maxcdn&a=JdFbT4OY).
 
 # MaxCDN REST Web Services Ruby Client
 
+[![Build Status](https://travis-ci.org/MaxCDN/ruby-maxcdn.png?branch=master)](https://travis-ci.org/MaxCDN/ruby-maxcdn) &nbsp; [![Gem Version](https://badge.fury.io/rb/maxcdn.png)](http://badge.fury.io/rb/maxcdn)
+
 ## Installation
 
 ``` bash
-gem install maxcdn # coming soon
+gem install maxcdn
 ```
 
 #### With Bundler
 
 ```
 bundle init
-echo "gem 'maxcdn', :git => 'https://github.com/jmervine/ruby-maxcdn.git'" >> Gemfile
+echo "gem 'maxcdn'" >> Gemfile
 bundle install --path vendor/bundle
 ```
 
