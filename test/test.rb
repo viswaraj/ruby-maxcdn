@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require "curb-fu"
 
 require "minitest/autorun"
@@ -58,7 +59,7 @@ class Client < Minitest::Test
     response = new_response
     CurbFu::Request.stub :get, response do
       res = @max._response_as_json("get", "http://example.com",
-                                   { :debug_request => true })
+                                   { :body => false, :debug_request => true })
       assert res.body
     end
   end
