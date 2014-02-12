@@ -63,12 +63,15 @@ module MaxCDN
 
       request_options = {
         :uri => _get_url(uri, options[:body] ? attributes[0] : {}),
-        :method => method
+        :method => method,
+        :headers => {
+          "User-Agent" => "Ruby MaxCDN API Client"
+        }
       }
 
       request_options[:body] = _encode_params(attributes[0]) if options[:body]
+
       request = @request_signer.generate_authenticated_request(request_options)
-      request.headers["User-Agent"] = "Ruby MaxCDN API Client"
 
       begin
         curb_options = {}

@@ -37,7 +37,7 @@ class Client < Minitest::Test
     }
 
     zid = @max.post("zones/pull.json", zone)["data"]["pullzone"]["id"]
-    assert zid, "post"
+    assert zid, "post id"
 
     assert_equal 200, @max.delete("zones/pull.json/#{zid}")["code"], "delete (warning: manually delete zone #{zid} at https://cp.maxcdn.com/zones/pull)."
   end
