@@ -5,6 +5,7 @@ gem "curb-fu"
 gemspec
 
 group :development, :test do
+  gem "pry"
   gem "minitest"
   gem "minitest-reporters"
 end
