@@ -98,7 +98,12 @@ bundle exec ruby ./test/integration.rb # requires host's IP be whitelisted
 
 ##### 0.1.1
 
-* POST, PUT and DELETE now send data via the request body instead of as query params.
+* Fixing POST, DELETE and PUT to send data via request body.
+* Adding debugging for CurbFu and Curl::Easy.
+* Fixing/enhancing unit tests.
+* Removing `secure_connection` handling, as all connections should be secure.
+* Fixing [414 Request-URI Too Large](https://github.com/netdna/netdnarws-ruby/issues/10) from old [netdnarws-ruby](https://github.com/netdna/netdnarws-ruby) client.
+
 
 ##### 0.1.0
 
