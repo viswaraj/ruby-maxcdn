@@ -1,6 +1,7 @@
 require "signet/oauth_1/client"
 require "curb-fu"
 require "json"
+require "pp" # for debug
 
 module MaxCDN
   module Utils
@@ -24,11 +25,10 @@ module MaxCDN
     include MaxCDN::Utils
 
     attr_accessor :client, :debug
-    def initialize(company_alias, key, secret, server="rws.maxcdn.com", secure_connection=true)
-      @debug = false
+    def initialize(company_alias, key, secret, server="rws.maxcdn.com", _debug=false)
+      @debug = _debug
       @company_alias = company_alias
       @server = server
-      @secure_connection = secure_connection
       @request_signer = Signet::OAuth1::Client.new(
         :client_credential_key => key,
         :client_credential_secret => secret,
@@ -37,18 +37,25 @@ module MaxCDN
     end
 
     def _connection_type
-      return "http" unless @secure_connection
       "https"
     end
 
     def _encode_params params={}
       encode_params(params).map { |k, v|
-        "#{k}=#{v}"
+        if v.is_a? Array
+          index = 0
+          v.map { |i|
+            str = "#{k}[#{index}]=#{i}"
+            index += 1
+            str
+          }.join "&"
+        else
+          "#{k}=#{v}"
+        end
       }.join "&"
     end
 
     def _get_url uri, params={}
-
       url = "#{_connection_type}://#{@server}/#{@company_alias}/#{uri.gsub(/^\//, "")}"
       if params and not params.empty?
         url += "?#{_encode_params(params)}"
@@ -57,25 +64,15 @@ module MaxCDN
       url
     end
 
-    def _response_as_json method, uri, options={}, *attributes
-      if debug
-        require 'pp'
-        puts "Making #{method.upcase} request to #{_get_url uri}"
-      end
+    def _response_as_json method, uri, options={}, data={}
+      puts "Making #{method.upcase} request to #{_get_url uri}" if debug
 
       req_opts = {
         :method => method
       }
 
-      req_opts[:uri] = _get_url(uri)
-
-      if attributes and attributes.size > 0
-        if options[:body]
-          req_opts[:body] = attributes[0]
-        else
-          req_opts[:uri] = _get_url(uri, attributes[0])
-        end
-      end
+      req_opts[:uri]  = _get_url(uri, (options[:body] ? {} : data))
+      req_opts[:body] = _encode_params(data) if options[:body]
 
       request = @request_signer.generate_authenticated_request(req_opts)
       request.headers["User-Agent"] = "Ruby MaxCDN API Client"
@@ -88,24 +85,12 @@ module MaxCDN
 
         CurbFu.debug = debug
 
-        if options[:body]
-          response = CurbFu.send method, curb_opts, request.body do |curb|
-            # Yes, I would perfer to do `curb.verbose = debug`, but
-            # it makes testing more difficult.
-            if debug
-              curb.verbose = true
-            end
+        response = CurbFu.send method, curb_opts, request.body do |curb|
+          curb.verbose = debug
 
-            # Because CurbFu overwrite the content-type header passed
-            # to it
-            curb.headers["Content-Type"] = "application/json"
-          end
-        else
-          response = CurbFu.send method, curb_opts, nil do |curb|
-            if debug
-              curb.verbose = true
-            end
-          end
+          # Because CurbFu overwrite the content-type header passed
+          # to it
+          curb.headers["Content-Type"] = "application/json" if request.body
         end
 
         pp response if debug
@@ -116,7 +101,7 @@ module MaxCDN
 
         unless response.success? or response.redirect?
           error_message = response_json["error"]["message"]
-          raisr MaxCDN::APIException.new("#{response.status}: #{error_message}")
+          raise MaxCDN::APIException.new("#{response.status}: #{error_message}")
         end
       rescue TypeError
         raise MaxCDN::APIException.new("#{response.status}: No information supplied by the server")
@@ -125,22 +110,17 @@ module MaxCDN
       response_json
     end
 
-    [ :get, :post, :put, :delete ].each do |meth|
+    [ :post, :get, :put, :delete ].each do |meth|
       define_method(meth) do |uri, data={}, options={}|
-        unless options.has_key?(:body)
-          options[:body] = (meth == :post || meth == :put)
-        end
+        options[:body] ||= true if meth != :get
         self._response_as_json meth.to_s, uri, options, data
       end
     end
 
     def purge zone_id, file_or_files=nil, options={}
       unless file_or_files.nil?
-        return self.delete(
-          "/zones/pull.json/#{zone_id}/cache",
-          {"file" => file_or_files},
-            options
-        )
+        return self.delete("/zones/pull.json/#{zone_id}/cache",
+                 { "files" => file_or_files }, options)
       end
 
       self.delete("/zones/pull.json/#{zone_id}/cache", {}, options)

@@ -26,6 +26,11 @@ require 'maxcdn'
 
 api = MaxCDN::Client.new("myalias", "consumer_key", "consumer_secret")
 
+####
+# Turn on debugging for underlying Curl::Easy and CurbFu modules
+#
+# api.debug = true
+
 api.get("/account.json")
 ```
 

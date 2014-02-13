@@ -1,32 +1,64 @@
 #!/usr/bin/env ruby
-require "signet/oauth_1/client"
-#require "curl"
-require "curb-fu"
-
 require "minitest/autorun"
-require "minitest/mock"
 require "minitest/reporters"
 
-#require "signet/oauth_1/client"
 require "./lib/maxcdn"
 
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
 
-#require "webmock"
-#include WebMock::API
+require "webmock"
+include WebMock::API
 
-#stub_request(:any, "rws.maxcdn.com").with({:body => "", :headers => {}})
+host = "https://rws.maxcdn.com/alias"
+
+headers = {
+  'Authorization' => /.+/,
+  'Cache-Control' => /.+/,
+  'Content-Type'  => /application.+/,
+  'Expect'        => /.*/,
+  'User-Agent'    => "Ruby MaxCDN API Client"
+}
+
+stub_request(:post, host+"/zones/pull.json")
+  .with(:body => 'foo=bar&bar=foo', :headers => headers)
+  .to_return(:body => '{"foo": "bar"}')
+
+stub_request(:post, host+"/zones/pull.json?foo=bar")
+  .with(:headers => headers)
+  .to_return(:body => '{"foo": "bar"}')
+
+stub_request(:put, host+"/account.json")
+  .with(:body => "foo=bar", :headers => headers)
+  .to_return(:body => '{"foo":"bar"}')
+
+#stub_request(:delete, host+"/zones/pull.json/12345/cache?files=foo.txt")
+stub_request(:delete, host+"/zones/pull.json/12345/cache")
+  .with(:body => "files=foo.txt", :headers => headers)
+  .to_return(:body => '{"foo":"bar"}')
+
+#stub_request(:delete, host+"/zones/pull.json/12345/cache?files[0]=foo.txt&files[1]=bar.txt")
+stub_request(:delete, host+"/zones/pull.json/12345/cache")
+  .with(:body => "files[0]=foo.txt&files[1]=bar.txt", :headers => headers)
+  .to_return(:body => '{"foo":"bar"}')
+
+# only post and put pass content-type header
+headers.delete('Content-Type')
+
+# get
+stub_request(:get, host+"/account.json")
+  .with(:headers => headers)
+  .to_return(:body => '{"foo":"bar"}')
+
+# delete
+stub_request(:delete, host+"/zones/pull.json/12345/cache")
+  .with(:headers => headers)
+  .to_return(:body => '{"foo":"bar"}')
 
 class Client < Minitest::Test
 
-  def new_response
-    res = Minitest::Mock.new
-    res.expect(:body, '{ "foo": "bar" }')
-    res.expect(:success?, true)
-  end
-
   def setup
     @max = MaxCDN::Client.new("alias", "key", "secret")
+    @max.debug = true if ENV['DEBUG']
   end
 
   def test_initialize
@@ -35,9 +67,6 @@ class Client < Minitest::Test
 
   def test__connection_type
     assert_equal "https", @max._connection_type
-
-    m = MaxCDN::Client.new("alias", "key", "secret", "foo", false)
-    assert_equal "http", m._connection_type
   end
 
   def test__encode_params
@@ -53,90 +82,49 @@ class Client < Minitest::Test
   end
 
   def test__response_as_json_standard
-    response = new_response
-    CurbFu::Request.stub :get, response do
-      res = @max._response_as_json("get", "http://example.com")
-      assert res
-    end
+    res = @max._response_as_json("get", "account.json")
+    assert_equal({ "foo" => "bar" }, res)
+
+    res = @max._response_as_json("post", "zones/pull.json?foo=bar")
+    assert_equal({ "foo" => "bar" }, res)
   end
 
-  def test__response_as_json_standard
-    response = new_response
-    CurbFu::Request.stub :get, response do
-      res = @max._response_as_json("get", "http://example.com", { :body => false })
-      assert_equal({ "foo" => "bar" }, res)
-    end
+  def test__response_as_json_body
+    res = @max._response_as_json("post", "zones/pull.json", { :body => true }, { "foo"=> "bar", "bar" => "foo" })
+    assert_equal({ "foo" => "bar" }, res)
   end
 
   def test_get
-    response = new_response
-    CurbFu::Request.stub :get, response do
-      assert_equal({ "foo" => "bar" }, @max.get("/account.json"))
-    end
-    assert response.verify
+    assert_equal({ "foo" => "bar" }, @max.get("account.json"))
   end
 
   def test_post
-    response = new_response
-    CurbFu::Request.stub :post, response do
-      assert_equal(
-        { "foo" => "bar" },
-        @max.post("/zones/pull.json",
-                  {'name' => 'test_zone', 'url' => 'http://my-test-site.com'},
-                  { :body => false }
-                      # get around stubbing things that are really
-                      # hard to stub
-                 ))
-    end
-    assert response.verify
+      assert_equal({ "foo" => "bar" }, @max.post("zones/pull.json", {"foo" => "bar", "bar" => "foo"}))
+      assert_equal({ "foo" => "bar" }, @max.post("zones/pull.json?foo=bar"))
   end
 
   def test_put
-    response = new_response
-    CurbFu::Request.stub :put, response do
-      assert_equal({ "foo" => "bar" }, @max.put("/zones/pull.json/1234", {'name' => 'i_didnt_like_test'}, { :body => false }))
-    end
-    assert response.verify
+    assert_equal({ "foo" => "bar" }, @max.put("account.json", {"foo"=>"bar"}))
   end
 
-  def test_delete
-    response = new_response
-    CurbFu::Request.stub :delete, response do
-      assert_equal({ "foo" => "bar" }, @max.delete("/zones/pull.json/1234"))
-    end
-    assert response.verify
+  def test_delete_cache
+    assert_equal({ "foo" => "bar" }, @max.delete("zones/pull.json/12345/cache"))
   end
 
-  def test_delete_file
-    response = new_response
-    CurbFu::Request.stub :delete, response do
-      assert_equal({ "foo" => "bar" }, @max.delete("/zones/pull.json/1234/cache", {"file" => "/robots.txt"}))
-    end
-    assert response.verify
+  def test_delete_cache_w_files
+    assert_equal({ "foo" => "bar" }, @max.delete("zones/pull.json/12345/cache", { :files => "foo.txt" }))
   end
 
   def test_purge
-    response = new_response
-    CurbFu::Request.stub :delete, response do
-      assert_equal({ "foo" => "bar" }, @max.purge(12345))
-    end
-    assert response.verify
+    assert_equal({ "foo" => "bar" }, @max.purge(12345))
   end
 
   def test_purge_file
-    response = new_response
-    CurbFu::Request.stub :delete, response do
-      assert_equal({ "foo" => "bar" }, @max.purge(12345, "/foo.txt"))
-    end
-    assert response.verify
+    assert_equal({ "foo" => "bar" }, @max.purge(12345, "foo.txt"))
   end
 
   def test_purge_files
-    response = new_response
-    CurbFu::Request.stub :delete, response do
-      assert_equal({ "foo" => "bar" }, @max.purge(12345, [ "/foo.txt", "/bar.txt" ]))
-    end
-    assert response.verify
+    assert_equal({ "foo" => "bar" }, @max.purge(12345, [ "foo.txt", "bar.txt" ]))
   end
 end
 
