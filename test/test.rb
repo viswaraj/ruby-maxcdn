@@ -31,25 +31,21 @@ stub_request(:put, host+"/account.json")
   .with(:body => "foo=bar", :headers => headers)
   .to_return(:body => '{"foo":"bar"}')
 
-#stub_request(:delete, host+"/zones/pull.json/12345/cache?files=foo.txt")
 stub_request(:delete, host+"/zones/pull.json/12345/cache")
   .with(:body => "files=foo.txt", :headers => headers)
   .to_return(:body => '{"foo":"bar"}')
 
-#stub_request(:delete, host+"/zones/pull.json/12345/cache?files[0]=foo.txt&files[1]=bar.txt")
 stub_request(:delete, host+"/zones/pull.json/12345/cache")
   .with(:body => "files[0]=foo.txt&files[1]=bar.txt", :headers => headers)
   .to_return(:body => '{"foo":"bar"}')
 
-# only post and put pass content-type header
+# stubs below this don't send content-type header
 headers.delete('Content-Type')
 
-# get
 stub_request(:get, host+"/account.json")
   .with(:headers => headers)
   .to_return(:body => '{"foo":"bar"}')
 
-# delete
 stub_request(:delete, host+"/zones/pull.json/12345/cache")
   .with(:headers => headers)
   .to_return(:body => '{"foo":"bar"}')
