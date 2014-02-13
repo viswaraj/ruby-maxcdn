@@ -98,6 +98,10 @@ bundle exec ruby ./test/integration.rb # requires host's IP be whitelisted
 
 ##### 0.1.1
 
+* Fixing an issue with lib loading in `0.1.1`.
+
+##### 0.1.1
+
 * Fixing POST, DELETE and PUT to send data via request body.
 * Adding debugging for CurbFu and Curl::Easy.
 * Fixing/enhancing unit tests.
