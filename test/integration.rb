@@ -14,6 +14,8 @@ class Client < Minitest::Test
 
   def setup
     @max  = MaxCDN::Client.new(ENV["ALIAS"], ENV["KEY"], ENV["SECRET"])
+    @max.debug = true if ENV['DEBUG']
+
     @time = Time.now.to_i.to_s
   end
 

@@ -26,6 +26,11 @@ require 'maxcdn'
 
 api = MaxCDN::Client.new("myalias", "consumer_key", "consumer_secret")
 
+####
+# Turn on debugging for underlying Curl::Easy and CurbFu modules
+#
+# api.debug = true
+
 api.get("/account.json")
 ```
 
@@ -60,6 +65,14 @@ api.purge(zone_id, '/some_file')
 api.purge(zone_id, ['/some_file', '/another_file'])
 ```
 
+#### Example: SSL Upload
+
+```
+max = MaxCDN::Client.new(alias, key, secret)
+max.post("zones/pull/12345/ssl.json", {
+  :ssl_crt => File.read("/path/to/server.crt").strip,
+  :ssl_key  => File.read("/path/to/server.key").strip })
+```
 
 ## Development Quick Start
 
@@ -81,3 +94,12 @@ export SECRET=<your secret>
 bundle exec ruby ./test/integration.rb # requires host's IP be whitelisted
 ```
 
+# Change Log
+
+##### 0.1.1
+
+* POST, PUT and DELETE now send data via the request body instead of as query params.
+
+##### 0.1.0
+
+* Initial Release
