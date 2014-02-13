@@ -1,7 +1,7 @@
 require "signet/oauth_1/client"
 require "curb-fu"
 require "json"
-require "./lib/ext/hash"
+require "ext/hash"
 require "pp" # for debug
 
 module MaxCDN
