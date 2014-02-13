@@ -86,3 +86,12 @@ export SECRET=<your secret>
 bundle exec ruby ./test/integration.rb # requires host's IP be whitelisted
 ```
 
+# Change Log
+
+##### 0.1.1
+
+* POST, PUT and DELETE now send data via the request body instead of as query params.
+
+##### 0.1.0
+
+* Initial Release
