@@ -65,11 +65,6 @@ class Client < Minitest::Test
     assert_equal "https", @max._connection_type
   end
 
-  def test__encode_params
-    assert_equal "foo=foo%20bar&bah=boo",
-      @max._encode_params({ :foo => "foo bar", :bah => "boo" })
-  end
-
   def test__get_url
     assert_equal "https://rws.maxcdn.com/alias/foo",
       @max._get_url("/foo")

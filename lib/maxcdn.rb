@@ -1,29 +1,14 @@
 require "signet/oauth_1/client"
 require "curb-fu"
 require "json"
+require "./lib/ext/hash"
 require "pp" # for debug
 
 module MaxCDN
-  module Utils
-    RESERVED_CHARACTERS = /[^a-zA-Z0-9\-\.\_\~]/
-
-    def escape(value)
-      URI::escape(value.to_s, MaxCDN::Utils::RESERVED_CHARACTERS)
-    rescue ArgumentError
-      URI::escape(value.to_s.force_encoding(Encoding::UTF_8), MaxCDN::Utils::RESERVED_CHARACTERS)
-    end
-
-    def encode_params params={}
-      Hash[params.map { |k, v| [escape(k), escape(v)] }]
-    end
-  end
-
   class APIException < Exception
   end
 
   class Client
-    include MaxCDN::Utils
-
     attr_accessor :client, :debug
     def initialize(company_alias, key, secret, server="rws.maxcdn.com", _debug=false)
       @debug = _debug
@@ -40,25 +25,10 @@ module MaxCDN
       "https"
     end
 
-    def _encode_params params={}
-      encode_params(params).map { |k, v|
-        if v.is_a? Array
-          index = 0
-          v.map { |i|
-            str = "#{k}[#{index}]=#{i}"
-            index += 1
-            str
-          }.join "&"
-        else
-          "#{k}=#{v}"
-        end
-      }.join "&"
-    end
-
     def _get_url uri, params={}
       url = "#{_connection_type}://#{@server}/#{@company_alias}/#{uri.gsub(/^\//, "")}"
       if params and not params.empty?
-        url += "?#{_encode_params(params)}"
+        url += "?#{params.to_params}"
       end
 
       url
@@ -72,7 +42,7 @@ module MaxCDN
       }
 
       req_opts[:uri]  = _get_url(uri, (options[:body] ? {} : data))
-      req_opts[:body] = _encode_params(data) if options[:body]
+      req_opts[:body] = data.to_params if options[:body]
 
       request = @request_signer.generate_authenticated_request(req_opts)
       request.headers["User-Agent"] = "Ruby MaxCDN API Client"
