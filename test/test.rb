@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+require "signet/oauth_1/client"
+#require "curl"
 require "curb-fu"
 
 require "minitest/autorun"
@@ -10,13 +12,17 @@ require "./lib/maxcdn"
 
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
 
+#require "webmock"
+#include WebMock::API
+
+#stub_request(:any, "rws.maxcdn.com").with({:body => "", :headers => {}})
+
 class Client < Minitest::Test
 
   def new_response
-    response = Minitest::Mock.new
-    response.expect(:body, '{ "foo": "bar" }')
-    response.expect(:success?, true)
-    response
+    res = Minitest::Mock.new
+    res.expect(:body, '{ "foo": "bar" }')
+    res.expect(:success?, true)
   end
 
   def setup
@@ -51,16 +57,14 @@ class Client < Minitest::Test
     CurbFu::Request.stub :get, response do
       res = @max._response_as_json("get", "http://example.com")
       assert res
-      assert response.verify
     end
   end
 
   def test__response_as_json_standard
     response = new_response
     CurbFu::Request.stub :get, response do
-      res = @max._response_as_json("get", "http://example.com",
-                                   { :body => false, :debug_request => true })
-      assert res.body
+      res = @max._response_as_json("get", "http://example.com", { :body => false })
+      assert_equal({ "foo" => "bar" }, res)
     end
   end
 
@@ -75,7 +79,14 @@ class Client < Minitest::Test
   def test_post
     response = new_response
     CurbFu::Request.stub :post, response do
-      assert_equal({ "foo" => "bar" }, @max.post("/zones/pull.json", {'name' => 'test_zone', 'url' => 'http://my-test-site.com'}))
+      assert_equal(
+        { "foo" => "bar" },
+        @max.post("/zones/pull.json",
+                  {'name' => 'test_zone', 'url' => 'http://my-test-site.com'},
+                  { :body => false }
+                      # get around stubbing things that are really
+                      # hard to stub
+                 ))
     end
     assert response.verify
   end
@@ -83,7 +94,7 @@ class Client < Minitest::Test
   def test_put
     response = new_response
     CurbFu::Request.stub :put, response do
-      assert_equal({ "foo" => "bar" }, @max.put("/zones/pull.json/1234", {'name' => 'i_didnt_like_test'}))
+      assert_equal({ "foo" => "bar" }, @max.put("/zones/pull.json/1234", {'name' => 'i_didnt_like_test'}, { :body => false }))
     end
     assert response.verify
   end

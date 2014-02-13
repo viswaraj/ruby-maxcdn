@@ -23,8 +23,9 @@ module MaxCDN
   class Client
     include MaxCDN::Utils
 
-    attr_accessor :client
+    attr_accessor :client, :debug
     def initialize(company_alias, key, secret, server="rws.maxcdn.com", secure_connection=true)
+      @debug = false
       @company_alias = company_alias
       @server = server
       @secure_connection = secure_connection
@@ -49,7 +50,7 @@ module MaxCDN
     def _get_url uri, params={}
 
       url = "#{_connection_type}://#{@server}/#{@company_alias}/#{uri.gsub(/^\//, "")}"
-      if not params.empty?
+      if params and not params.empty?
         url += "?#{_encode_params(params)}"
       end
 
@@ -57,47 +58,68 @@ module MaxCDN
     end
 
     def _response_as_json method, uri, options={}, *attributes
-      if options.delete(:debug)
+      if debug
+        require 'pp'
         puts "Making #{method.upcase} request to #{_get_url uri}"
       end
 
-      request_options = {
-        :uri => _get_url(uri, options[:body] ? attributes[0] : {}),
-        :method => method,
-        :headers => {
-          "User-Agent" => "Ruby MaxCDN API Client"
-        }
+      req_opts = {
+        :method => method
       }
 
-      request_options[:body] = _encode_params(attributes[0]) if options[:body]
+      req_opts[:uri] = _get_url(uri)
 
-      request = @request_signer.generate_authenticated_request(request_options)
+      if attributes and attributes.size > 0
+        if options[:body]
+          req_opts[:body] = attributes[0]
+        else
+          req_opts[:uri] = _get_url(uri, attributes[0])
+        end
+      end
+
+      request = @request_signer.generate_authenticated_request(req_opts)
+      request.headers["User-Agent"] = "Ruby MaxCDN API Client"
 
       begin
-        curb_options = {}
-        curb_options[:url] = request_options[:uri]
-        curb_options[:headers] = request.headers
+        curb_opts = {
+          :url => req_opts[:uri],
+          :headers => request.headers
+        }
 
-        if not options[:body]
-          response = CurbFu.send method, curb_options
+        CurbFu.debug = debug
+
+        if options[:body]
+          response = CurbFu.send method, curb_opts, request.body do |curb|
+            # Yes, I would perfer to do `curb.verbose = debug`, but
+            # it makes testing more difficult.
+            if debug
+              curb.verbose = true
+            end
+
+            # Because CurbFu overwrite the content-type header passed
+            # to it
+            curb.headers["Content-Type"] = "application/json"
+          end
         else
-          response = CurbFu.send method, curb_options, request.body
+          response = CurbFu.send method, curb_opts, nil do |curb|
+            if debug
+              curb.verbose = true
+            end
+          end
         end
 
-        return response if options[:debug_request]
+        pp response if debug
 
         response_json = JSON.load(response.body)
 
-        return response_json if options[:debug_json]
+        pp response_json if debug
 
-        if not (response.success? or response.redirect?)
+        unless response.success? or response.redirect?
           error_message = response_json["error"]["message"]
-          raise MaxCDN::APIException.new("#{response.status}: #{error_message}")
+          raisr MaxCDN::APIException.new("#{response.status}: #{error_message}")
         end
       rescue TypeError
-        raise MaxCDN::APIException.new(
-          "#{response.status}: No information supplied by the server"
-        )
+        raise MaxCDN::APIException.new("#{response.status}: No information supplied by the server")
       end
 
       response_json
@@ -105,7 +127,9 @@ module MaxCDN
 
     [ :get, :post, :put, :delete ].each do |meth|
       define_method(meth) do |uri, data={}, options={}|
-        options[:body] = (meth == :post || meth == :put)
+        unless options.has_key?(:body)
+          options[:body] = (meth == :post || meth == :put)
+        end
         self._response_as_json meth.to_s, uri, options, data
       end
     end

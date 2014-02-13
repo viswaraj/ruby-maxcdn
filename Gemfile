@@ -8,5 +8,6 @@ group :development, :test do
   gem "pry"
   gem "minitest"
   gem "minitest-reporters"
+  gem "webmock"
 end
 
