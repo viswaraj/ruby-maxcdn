@@ -65,6 +65,14 @@ api.purge(zone_id, '/some_file')
 api.purge(zone_id, ['/some_file', '/another_file'])
 ```
 
+#### Example: SSL Upload
+
+```
+max = MaxCDN::Client.new(alias, key, secret)
+max.post("zones/pull/12345/ssl.json", {
+  :ssl_crt => File.read("/path/to/server.crt").strip,
+  :ssl_key  => File.read("/path/to/server.key").strip })
+```
 
 ## Development Quick Start
 
