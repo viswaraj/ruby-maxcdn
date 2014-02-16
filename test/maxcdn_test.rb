@@ -11,44 +11,50 @@ include WebMock::API
 
 host = "https://rws.maxcdn.com/alias"
 
-headers = {
+expected_headers = {
   'Authorization' => /.+/,
   'Cache-Control' => /.+/,
-  'Content-Type'  => /application.+/,
+  'Content-Type'  => "application/json",
   'Expect'        => /.*/,
   'User-Agent'    => "Ruby MaxCDN API Client"
 }
 
+# requests with :body
 stub_request(:post, host+"/zones/pull.json")
-  .with(:body => 'foo=bar&bar=foo', :headers => headers)
-  .to_return(:body => '{"foo": "bar"}')
-
-stub_request(:post, host+"/zones/pull.json?foo=bar")
-  .with(:headers => headers)
+  .with(:body => "foo=bar&bar=foo", :headers => expected_headers)
   .to_return(:body => '{"foo": "bar"}')
 
 stub_request(:put, host+"/account.json")
-  .with(:body => "foo=bar", :headers => headers)
+  .with(:body => "foo=bar", :headers => expected_headers)
   .to_return(:body => '{"foo":"bar"}')
 
 stub_request(:delete, host+"/zones/pull.json/12345/cache")
-  .with(:body => "files=foo.txt", :headers => headers)
+  .with(:body => "files=foo.txt", :headers => expected_headers)
   .to_return(:body => '{"foo":"bar"}')
 
 stub_request(:delete, host+"/zones/pull.json/12345/cache")
-  .with(:body => "files[0]=foo.txt&files[1]=bar.txt", :headers => headers)
+  .with(:body => "files[0]=foo.txt&files[1]=bar.txt", :headers => expected_headers)
   .to_return(:body => '{"foo":"bar"}')
 
-# stubs below this don't send content-type header
-headers.delete('Content-Type')
+stub_request(:delete, host+"/zones/pull.json/12345/cache")
+  .with(:headers => expected_headers)
+  .to_return(:body => '{"foo":"bar"}')
 
+# requests without :body
+expected_headers['Content-Type'] = "application/x-www-form-urlencoded"
 stub_request(:get, host+"/account.json")
-  .with(:headers => headers)
+  .with(:headers => expected_headers)
   .to_return(:body => '{"foo":"bar"}')
 
-stub_request(:delete, host+"/zones/pull.json/12345/cache")
-  .with(:headers => headers)
+# test custom content-type
+expected_headers['Content-Type'] = "application/custom"
+stub_request(:get, host+"/account.json/address")
+  .with(:headers => expected_headers)
   .to_return(:body => '{"foo":"bar"}')
+
+# ingore headers
+stub_request(:post, host+"/zones/pull.json?foo=bar")
+  .to_return(:body => '{"foo": "bar"}')
 
 class Client < Minitest::Test
 
@@ -63,6 +69,9 @@ class Client < Minitest::Test
 
   def test__connection_type
     assert_equal "https", @max._connection_type
+
+    max = MaxCDN::Client.new("alias", "key", "secret", "rws.maxcdn.com", false)
+    assert_equal "http", max._connection_type
   end
 
   def test__get_url
@@ -83,6 +92,20 @@ class Client < Minitest::Test
   def test__response_as_json_body
     res = @max._response_as_json("post", "zones/pull.json", { :body => true }, { "foo"=> "bar", "bar" => "foo" })
     assert_equal({ "foo" => "bar" }, res)
+  end
+
+  def test__response_as_json_debug_json
+    res = @max._response_as_json("post", "zones/pull.json", { :body => true, :debug_json => true }, { "foo"=> "bar", "bar" => "foo" })
+    assert_equal({ "foo" => "bar" }, res)
+  end
+
+  def test__response_as_json_debug_request
+    res = @max._response_as_json("post", "zones/pull.json", { :body => true, :debug_request => true }, { "foo"=> "bar", "bar" => "foo" })
+    assert_equal(CurbFu::Response::Base, res.class)
+  end
+
+  def test_custom_header
+    assert_equal({ "foo" => "bar" }, @max.get("account.json/address", {}, { :headers => { 'content-type' => 'application/custom' }}))
   end
 
   def test_get

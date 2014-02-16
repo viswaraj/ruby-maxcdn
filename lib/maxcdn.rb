@@ -10,8 +10,9 @@ module MaxCDN
 
   class Client
     attr_accessor :client, :debug
-    def initialize(company_alias, key, secret, server="rws.maxcdn.com", _debug=false)
+    def initialize(company_alias, key, secret, server="rws.maxcdn.com", secure_connection=true, _debug=false)
       @debug = _debug
+      @secure_connection = secure_connection
       @company_alias = company_alias
       @server = server
       @request_signer = Signet::OAuth1::Client.new(
@@ -22,6 +23,7 @@ module MaxCDN
     end
 
     def _connection_type
+      return "http" unless @secure_connection
       "https"
     end
 
@@ -45,7 +47,17 @@ module MaxCDN
       req_opts[:body] = data.to_params if options[:body]
 
       request = @request_signer.generate_authenticated_request(req_opts)
-      request.headers["User-Agent"] = "Ruby MaxCDN API Client"
+
+      # crazyness for headers
+      headers = options.delete(:headers) || {}
+      headers["User-Agent"] = "Ruby MaxCDN API Client"
+
+      # because CurbFu overwrites 'content-type' header, strip it
+      # to set it later
+      content_type = headers.case_indifferent_delete("Content-Type") || (options[:body] ? "application/json" : "application/x-www-form-urlencoded")
+
+      # merge headers with request headers
+      request.headers.case_indifferent_merge(headers)
 
       begin
         curb_opts = {
@@ -58,15 +70,22 @@ module MaxCDN
         response = CurbFu.send method, curb_opts, request.body do |curb|
           curb.verbose = debug
 
-          # Because CurbFu overwrite the content-type header passed
-          # to it
-          curb.headers["Content-Type"] = "application/json" if request.body
+          # Because CurbFu overwrites the content-type header passed
+          # to it. so we'll be setting our own.
+          #
+          # First, remove any existing 'Content-Type' header.
+          curb.headers.case_indifferent_delete("Content-Type")
+
+          # Second, set 'Content-Type' to our desired value.
+          curb.headers["Content-Type"] = content_type
         end
 
+        return response if options[:debug_request]
         pp response if debug
 
         response_json = JSON.load(response.body)
 
+        return response_json if options[:debug_json]
         pp response_json if debug
 
         unless response.success? or response.redirect?
@@ -80,10 +99,10 @@ module MaxCDN
       response_json
     end
 
-    [ :post, :get, :put, :delete ].each do |meth|
-      define_method(meth) do |uri, data={}, options={}|
-        options[:body] ||= true if meth != :get
-        self._response_as_json meth.to_s, uri, options, data
+    [ :post, :get, :put, :delete ].each do |method|
+      define_method(method) do |uri, data={}, options={}|
+        options[:body] ||= true if method != :get
+        self._response_as_json method.to_s, uri, options, data
       end
     end
 

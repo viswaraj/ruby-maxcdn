@@ -36,6 +36,27 @@ class Hash
     params
   end
 
+  def case_indifferent_delete key
+    existing_keys = self.keys.map { |k| k.downcase }
+    index = existing_keys.index(key.downcase)
+    unless index.nil?
+      self.delete(self.keys[index])
+    end
+  end
+
+  def case_indifferent_merge incoming_hash
+    existing_keys = self.keys.map { |k| k.downcase }
+
+    incoming_hash.each do |key, value|
+      index = existing_keys.index(key.downcase)
+      if index.nil?
+        self[key] = value
+      else
+        self[self.keys[index]] = value
+      end
+    end
+  end
+
   def self.from_array(array = [])
     h = Hash.new
     array.size.times do |t|
