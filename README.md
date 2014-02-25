@@ -12,7 +12,7 @@ Do you like building cool stuff?  Do APIs keep you up at night? We're looking fo
 gem install maxcdn
 ```
 
-> Requires Ruby 1.9.2+ (see: [Travis](https://travis-ci.org/MaxCDN/ruby-maxcdn.png?branch=master) for passing Ruby versions.)
+> Requires Ruby 1.9.2+ (see: [Travis](https://travis-ci.org/MaxCDN/ruby-maxcdn) for passing Ruby versions.)
 
 #### With Bundler
 
