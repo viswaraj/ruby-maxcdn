@@ -28,20 +28,20 @@ stub_request(:put, host+"/account.json")
   .with(:body => "foo=bar", :headers => expected_headers)
   .to_return(:body => '{"foo":"bar"}')
 
-stub_request(:delete, host+"/zones/pull.json/12345/cache")
-  .with(:body => "files=foo.txt", :headers => expected_headers)
+# requests without :body
+expected_headers['Content-Type'] = "application/x-www-form-urlencoded"
+stub_request(:delete, host+"/zones/pull.json/12345/cache?files=foo.txt")
+  .with(:headers => expected_headers)
   .to_return(:body => '{"foo":"bar"}')
 
-stub_request(:delete, host+"/zones/pull.json/12345/cache")
-  .with(:body => "files[0]=foo.txt&files[1]=bar.txt", :headers => expected_headers)
+stub_request(:delete, host+"/zones/pull.json/12345/cache?files[0]=foo.txt&files[1]=bar.txt")
+  .with(:headers => expected_headers)
   .to_return(:body => '{"foo":"bar"}')
 
 stub_request(:delete, host+"/zones/pull.json/12345/cache")
   .with(:headers => expected_headers)
   .to_return(:body => '{"foo":"bar"}')
 
-# requests without :body
-expected_headers['Content-Type'] = "application/x-www-form-urlencoded"
 stub_request(:get, host+"/account.json")
   .with(:headers => expected_headers)
   .to_return(:body => '{"foo":"bar"}')
