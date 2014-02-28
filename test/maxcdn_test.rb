@@ -42,10 +42,6 @@ stub_request(:delete, host+"/zones/pull.json/12345/cache?files=bar.txt")
   .with(:headers => expected_headers)
   .to_return(:body => '{"foo":"bar"}')
 
-#stub_request(:delete, host+"/zones/pull.json/12345/cache")
-  #.with(:body => "files[0]=foo.txt&files[1]=bar.txt", :headers => expected_headers)
-  #.to_return(:body => '{"foo":"bar"}')
-
 stub_request(:delete, host+"/zones/pull.json/12345/cache")
   .with(:headers => expected_headers)
   .to_return(:body => '{"foo":"bar"}')
