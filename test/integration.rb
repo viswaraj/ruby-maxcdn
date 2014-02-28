@@ -56,7 +56,8 @@ class Client < Minitest::Test
     popularfiles = @max.get("reports/popularfiles.json")["data"]["popularfiles"]
     assert_equal 200, @max.purge(zone, popularfiles[0]["uri"])["code"], "purge file"
 
-    assert_equal 200, @max.purge(zone, [ popularfiles[0]["uri"], popularfiles[1]["uri"]])["code"], "purge files"
+    files = [popularfiles[0]["uri"], popularfiles[1]["uri"]]
+    assert_equal [{"code"=>200},{"code"=>200}], @max.purge(zone, files), "purge files"
   end
 end
 
