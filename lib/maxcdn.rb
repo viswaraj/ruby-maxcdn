@@ -99,20 +99,40 @@ module MaxCDN
       response_json
     end
 
-    [ :post, :get, :put, :delete ].each do |method|
+    [ :post, :put ].each do |method|
       define_method(method) do |uri, data={}, options={}|
-        options[:body] ||= true if method != :get
+        options[:body] ||= true
+        self._response_as_json method.to_s, uri, options, data
+      end
+    end
+
+    [ :get, :delete ].each do |method|
+      define_method(method) do |uri, data={}, options={}|
+        options[:body] = false
         self._response_as_json method.to_s, uri, options, data
       end
     end
 
     def purge zone_id, file_or_files=nil, options={}
-      unless file_or_files.nil?
-        return self.delete("/zones/pull.json/#{zone_id}/cache",
-                 { "files" => file_or_files }, options)
+      if file_or_files.nil?
+        return self.delete("/zones/pull.json/#{zone_id}/cache", {}, options)
       end
 
-      self.delete("/zones/pull.json/#{zone_id}/cache", {}, options)
+      if file_or_files.is_a?(String)
+        return self.delete("/zones/pull.json/#{zone_id}/cache", { "files" => file_or_files }, options)
+      end
+
+      if file_or_files.is_a?(Array)
+        return file_or_files.map do |file|
+          self.delete("/zones/pull.json/#{zone_id}/cache", { "files" => file }, options)
+        end
+      end
+
+      if file_or_files.is_a?(Hash) and (file_or_files.has_key(:files) or file_or_files.has_key("files"))
+          return self.delete("/zones/pull.json/#{zone_id}/cache", { "files" => file_or_files }, options)
+      end
+
+      raise MaxCDN::APIException.new("Invalid file_or_files argument for delete method.")
     end
   end
 end
