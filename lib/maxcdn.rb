@@ -123,13 +123,16 @@ module MaxCDN
       end
 
       if file_or_files.is_a?(Array)
-        return file_or_files.map do |file|
-          self.delete("/zones/pull.json/#{zone_id}/cache", { "files" => file }, options)
+        result = {}
+        file_or_files.each do |file|
+          result[file] = self.delete("/zones/pull.json/#{zone_id}/cache", { "files" => file }, options)
         end
+        return result
       end
 
-      if file_or_files.is_a?(Hash) and (file_or_files.has_key(:files) or file_or_files.has_key("files"))
-          return self.delete("/zones/pull.json/#{zone_id}/cache", { "files" => file_or_files }, options)
+      if file_or_files.is_a?(Hash)
+        return self.purge(zone_id, file_or_files[:files]) if file_or_files.has_key?("files")
+        return self.purge(zone_id, file_or_files[:files]) if file_or_files.has_key?(:files)
       end
 
       raise MaxCDN::APIException.new("Invalid file_or_files argument for delete method.")

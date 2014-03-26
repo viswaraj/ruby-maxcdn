@@ -57,7 +57,7 @@ class Client < Minitest::Test
     assert_equal 200, @max.purge(zone, popularfiles[0]["uri"])["code"], "purge file"
 
     files = [popularfiles[0]["uri"], popularfiles[1]["uri"]]
-    assert_equal [{"code"=>200},{"code"=>200}], @max.purge(zone, files), "purge files"
+    expected = {files[0]=>{"code"=>200},files[1]=>{"code"=>200}}
+    assert_equal expected, @max.purge(zone, files), "purge files"
   end
 end
-
