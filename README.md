@@ -98,6 +98,10 @@ bundle exec ruby ./test/integration.rb # requires host's IP be whitelisted
 
 # Change Log
 
+##### 0.1.5
+
+* Issue #4: Fixing purge files by array to return a hash of status results.
+
 ##### 0.1.4
 
 * Fixing bug where purging files purges entire zone.

@@ -138,7 +138,11 @@ class Client < Minitest::Test
   end
 
   def test_purge_files
-    assert_equal([{ "foo" => "bar" },{ "foo" => "bar" }], @max.purge(12345, [ "foo.txt", "bar.txt" ]))
+    assert_equal({"foo.txt"=>{"foo"=>"bar"}, "bar.txt"=>{"foo"=>"bar"}}, @max.purge(12345, [ "foo.txt", "bar.txt" ]))
+  end
+
+  def test_purge_files
+    assert_equal({"foo.txt"=>{"foo"=>"bar"}, "bar.txt"=>{"foo"=>"bar"}}, @max.purge(12345, { :files => [ "foo.txt", "bar.txt" ]}))
   end
 end
 
