@@ -12,6 +12,7 @@ puts "Running benchmarks as follows in order:"
 puts " "
 puts " maxcdn.get('zones/pull.json')"
 puts " maxcdn.get('reports/popularfiles.json')"
+puts " maxcdn.get('v3/reporting/logs.json')"
 puts " maxcdn.post('zones/pull.json', { :name => 'NAM', :url => 'URL' })"
 puts " maxcdn.put('account.json', { :name => 'NAME' })"
 puts " maxcdn.delete('zones/pull.json/ZONEID')"
@@ -23,14 +24,18 @@ puts " "
 Benchmark.bm do |mark|
 
   maxcdn = MaxCDN::Client.new(ENV["ALIAS"], ENV["KEY"], ENV["SECRET"])
-  time = Time.now.to_i.to_s
 
   mark.report("get   :") do
-    @pullzone = maxcdn.get("zones/pull.json")["data"]["pullzones"][0]["id"]
+    zones = maxcdn.get("zones/pull.json")["data"]["pullzones"]
+    @pullzone = zones[zones.length-1]["id"]
   end
 
   mark.report("get   :") do
     @popularfiles = maxcdn.get("reports/popularfiles.json")["data"]["popularfiles"]
+  end
+
+  mark.report("get   :") do
+    @popularfiles = maxcdn.get("v3/reporting/logs.json")["next_page_key"]
   end
 
   @zone = {

@@ -31,6 +31,10 @@ class Client < Minitest::Test
     end
   end
 
+  def test_get_logs
+      assert @max.get("v3/reporting/logs.json")["next_page_key"], "get next_page_key with data"
+  end
+
   def test_post_and_delete
 
     zone = {
@@ -50,7 +54,8 @@ class Client < Minitest::Test
   end
 
   def test_purge
-    zone = @max.get("zones/pull.json")["data"]["pullzones"][0]["id"]
+    zones = @max.get("zones/pull.json")["data"]["pullzones"]
+    zone = zones[zones.length-1]["id"]
     assert_equal 200, @max.purge(zone)["code"], "purge"
 
     popularfiles = @max.get("reports/popularfiles.json")["data"]["popularfiles"]
