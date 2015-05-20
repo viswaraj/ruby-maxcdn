@@ -1,7 +1,5 @@
-source "http://rubygems.org"
+source "https://rubygems.org"
 
-gem 'signet', '~> 0.4.5'
-gem 'curb-fu', '~> 0.6.2'
 gemspec
 
 group :development, :test do
