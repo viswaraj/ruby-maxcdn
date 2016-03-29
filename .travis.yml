@@ -1,6 +1,8 @@
 language: ruby
 script: bundle exec rake test
-sudo: required
+sudo: false
+before_install:
+  - gem update bundler
 rvm:
   - 1
   - 2
