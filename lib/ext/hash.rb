@@ -1,10 +1,10 @@
-class Hash
-  RESERVED_CHARACTERS = /[^a-zA-Z0-9\-\.\_\~]/
+require 'addressable'
 
+class Hash
   def _escape(value)
-    URI::escape(value.to_s, RESERVED_CHARACTERS)
+    Addressable::URI.encode(Addressable::URI.parse(value.to_s))
   rescue ArgumentError
-    URI::escape(value.to_s.force_encoding(Encoding::UTF_8), RESERVED_CHARACTERS)
+    Addressable::URI.encode(Addressable::URI.parse(value.to_s.force_encoding(Encoding::UTF_8)))
   end
 
   def to_params
