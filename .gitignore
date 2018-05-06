@@ -15,7 +15,6 @@ vendor
 # jeweler generated
 pkg
 *.gem
-*.lock
 .DS_Store
 npm-debug.log
 
