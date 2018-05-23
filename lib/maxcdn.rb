@@ -15,32 +15,26 @@ module MaxCDN
       @company_alias = company_alias
       @server = server
       @request_signer = Signet::OAuth1::Client.new(
-        :client_credential_key => key,
-        :client_credential_secret => secret,
-        :two_legged => true
+        client_credential_key: key,
+        client_credential_secret: secret,
+        two_legged: true
       )
     end
 
     def _connection_type
-      return "http" unless @secure_connection
-      "https"
+      @secure_connection ? "https" : "http"
     end
 
     def _get_url uri, params={}
       url = "#{_connection_type}://#{@server}/#{@company_alias}/#{uri.gsub(/^\//, "")}"
-      if params and not params.empty?
-        url += "?#{params.to_params}"
-      end
-
+      url += "?#{params.to_params}" if params && !params.empty?
       url
     end
 
     def _response_as_json method, uri, options={}, data={}
       puts "Making #{method.upcase} request to #{_get_url uri}" if debug
 
-      req_opts = {
-        :method => method
-      }
+      req_opts = { method: method }
 
       req_opts[:uri]  = _get_url(uri, (options[:body] ? {} : data))
       req_opts[:body] = data.to_params if options[:body]
@@ -48,7 +42,10 @@ module MaxCDN
       request = @request_signer.generate_authenticated_request(req_opts)
 
       # crazyness for headers
-      headers = {"Content-Type" => options[:body] ? "application/json" : "application/x-www-form-urlencoded"}
+      headers = {
+        "Content-Type" => options[:body] ? "application/json" : "application/x-www-form-urlencoded"
+      }
+
       headers.case_indifferent_merge(options.delete(:headers) || {})
       headers["User-Agent"] = "Ruby MaxCDN API Client"
 
@@ -63,7 +60,7 @@ module MaxCDN
 
         response = conn.send(method, path) do |req|
           req.headers = request.headers
-          req.body = request.body
+          req.body    = request.body
         end
 
         return response if options[:debug_request]

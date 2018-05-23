@@ -19,3 +19,4 @@ task :benchmark do
   require "./test/benchmark"
 end
 
+task :default => :test
