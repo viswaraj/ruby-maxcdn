@@ -37,7 +37,7 @@ module MaxCDN
       req_opts = { method: method }
 
       req_opts[:uri]  = _get_url(uri, (options[:body] ? {} : data))
-      req_opts[:body] = data.to_params if options[:body]
+      req_opts[:body] = data if options[:body]
 
       request = @request_signer.generate_authenticated_request(req_opts)
 
@@ -72,7 +72,8 @@ module MaxCDN
 
         unless response.success?
           error_message = response_json["error"]["message"]
-          raise MaxCDN::APIException.new("#{response.status}: #{error_message}")
+          error_desc = response_json["data"]["errors"].values.join(",")
+          raise MaxCDN::APIException.new("#{response.status}: #{error_message}: #{error_desc}")
         end
       rescue TypeError
         raise MaxCDN::APIException.new("#{response.status}: No information supplied by the server")
